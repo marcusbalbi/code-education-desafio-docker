@@ -1,0 +1,44 @@
+version: '3'
+
+services: 
+  app:
+    build:
+      context: .
+      dockerfile: app.dockefile
+    container_name: code_education_node_app
+    entrypoint: dockerize -wait tcp://db:3306 -timeout 60s /app/entrypoint.sh
+    networks: 
+      - nodenetwork
+    volumes: 
+      - .:/app
+    ports: 
+      - 3000:3000
+    depends_on: 
+      - db
+  db:
+    image: mysql:5.7
+    container_name: code_education_db
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    networks: 
+      - nodenetwork
+    volumes: 
+      - ./dbdata:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: desafio_node
+      MYSQL_ROOT_PASSWORD: root
+  web:
+    build:
+      context: .
+      dockerfile: web.dockerfile
+    container_name: code_education_web
+    networks: 
+      - nodenetwork
+    ports: 
+      - 8000:80
+    depends_on: 
+      - app
+
+networks: 
+  nodenetwork:
+    driver: bridge
